@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Barcode Calculator Scale</title>
+  <title>Barcode Weight Generator</title>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   <style>
     * {
@@ -211,7 +211,7 @@
   </style>
 </head>
 <body>
-  <div class="audio-status" id="audio-status">Audio: Memuat...</div>
+  <div class="audio-status" id="audio-status">Audio: Load...</div>
   
   <div class="calculator">
     <div id="display">
@@ -221,17 +221,17 @@
           <div class="display-value" id="current-flex">00</div>
         </div>
         <div class="display-item">
-          <div class="display-label">KATEGORI</div>
+          <div class="display-label">CATEGORI</div>
           <div class="display-value" id="current-category">00</div>
         </div>
       </div>
       <div class="display-row">
         <div class="display-item">
-          <div class="display-label">PRODUK</div>
+          <div class="display-label">PRODUCT</div>
           <div class="display-value" id="current-product">0000</div>
         </div>
         <div class="display-item">
-          <div class="display-label">BERAT</div>
+          <div class="display-label">WEIGHT</div>
           <div class="display-value" id="current-weight">00000</div>
         </div>
       </div>
@@ -245,12 +245,12 @@
     
     <div class="small-function-row">
       <button id="flex-btn" class="function-btn small-btn">FLEX</button>
-      <button id="category-btn" class="function-btn small-btn">KATEGORI</button>
+      <button id="category-btn" class="function-btn small-btn">CATEGORI</button>
     </div>
     
     <div class="function-row">
-      <button id="product-btn" class="function-btn active-mode">PRODUK</button>
-      <button id="weight-btn" class="function-btn">BERAT</button>
+      <button id="product-btn" class="function-btn active-mode">PRODUCT</button>
+      <button id="weight-btn" class="function-btn">WEIGHT</button>
       <button class="backspace-btn">⌫</button>
     </div>
     
@@ -280,7 +280,7 @@
     </div>
     
     <svg id="barcode"></svg>
-    <div id="status" class="status-disconnected">Printer: Tidak Terkoneksi</div>
+    <div id="status" class="status-disconnected">Printer: Not Connected</div>
   </div>
   <div id="notification"></div>
 
@@ -296,13 +296,13 @@
         if (window.AudioContext || window.webkitAudioContext) {
           audioContext = new (window.AudioContext || window.webkitAudioContext)();
           isAudioInitialized = true;
-          audioStatus.textContent = "Audio: Siap";
+          audioStatus.textContent = "Audio: Ready";
           setTimeout(() => {
             audioStatus.classList.remove('show');
           }, 2000);
           console.log("Audio initialized successfully");
         } else {
-          audioStatus.textContent = "Audio: Tidak didukung";
+          audioStatus.textContent = "Audio: Not Supported";
           setTimeout(() => {
             audioStatus.classList.remove('show');
           }, 2000);
@@ -352,7 +352,7 @@
         gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
         
         oscillator.start(now);
-        oscillator.stop(now + duration);
+        // oscillator.stop(now + duration);
         
         // Cleanup
         oscillator.onended = () => {
@@ -521,7 +521,7 @@
         writer = port.writable.getWriter();
         
         updateConnectionStatus(true);
-        showNotification('Printer berhasil terhubung!');
+        showNotification('Printer Connected!');
         return true;
         
       } catch (error) {
