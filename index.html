@@ -345,14 +345,14 @@
         // Set envelope for short TIT sound
         const now = audioContext.currentTime;
         const duration = 0.08; // Very short duration for TIT
-        const volume = 0.45; // Good volume level
+        const volume = 0.65; // Good volume level
         
         gainNode.gain.setValueAtTime(0, now);
         gainNode.gain.linearRampToValueAtTime(volume, now + 0.01);
         gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
         
         oscillator.start(now);
-        // oscillator.stop(now + duration);
+        oscillator.stop(now + duration);
         
         // Cleanup
         oscillator.onended = () => {
