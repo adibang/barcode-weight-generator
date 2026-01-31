@@ -33,6 +33,7 @@
       padding: 15px;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      position: relative;
     }
 
     #display {
@@ -208,12 +209,148 @@
     .audio-status.show {
       opacity: 1;
     }
+    
+    /* Settings Button */
+    .settings-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #8e44ad !important;
+      width: 40px;
+      height: 40px;
+      min-height: 40px;
+      padding: 5px;
+      border-radius: 50%;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .settings-btn:active, .settings-btn.active {
+      background: #9b59b6 !important;
+    }
+    
+    /* Settings Modal */
+    .settings-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .settings-content {
+      background: #34495e;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 350px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    
+    .settings-title {
+      color: white;
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 1.2em;
+    }
+    
+    .setting-item {
+      margin-bottom: 15px;
+      background: #2c3e50;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    
+    .setting-label {
+      color: #ecf0f1;
+      margin-bottom: 8px;
+      display: block;
+      font-size: 14px;
+    }
+    
+    .setting-input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+      background: #ecf0f1;
+      font-size: 16px;
+      text-align: center;
+    }
+    
+    .setting-info {
+      color: #bdc3c7;
+      font-size: 12px;
+      margin-top: 5px;
+      text-align: center;
+    }
+    
+    .settings-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .save-btn {
+      background: #27ae60 !important;
+    }
+    
+    .cancel-btn {
+      background: #c0392b !important;
+    }
+    
+    .current-settings {
+      color: #ecf0f1;
+      text-align: center;
+      margin-top: 15px;
+      font-size: 12px;
+      background: rgba(0,0,0,0.2);
+      padding: 10px;
+      border-radius: 5px;
+    }
+    
+    /* New: Reset Flex & Category Button */
+    .reset-values-btn {
+      background: #e67e22 !important;
+      margin-top: 10px;
+    }
+    
+    .reset-values-btn:active {
+      background: #d35400 !important;
+    }
+    
+    .stored-values-info {
+      color: #ecf0f1;
+      text-align: center;
+      margin-top: 10px;
+      font-size: 12px;
+      background: rgba(0,0,0,0.2);
+      padding: 8px;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .stored-values-info span {
+      flex: 1;
+    }
   </style>
 </head>
 <body>
   <div class="audio-status" id="audio-status">Audio: Load...</div>
   
   <div class="calculator">
+    <button class="settings-btn" id="settings-btn">⚙️</button>
+    
     <div id="display">
       <div class="display-row">
         <div class="display-item">
@@ -282,6 +419,55 @@
     <svg id="barcode"></svg>
     <div id="status" class="status-disconnected">Printer: Disconnected</div>
   </div>
+  
+  <!-- Settings Modal -->
+  <div class="settings-modal" id="settings-modal">
+    <div class="settings-content">
+      <div class="settings-title">PENGATURAN DIGIT</div>
+      
+      <div class="setting-item">
+        <label class="setting-label">Digit FLEX:</label>
+        <input type="number" id="flex-digits" class="setting-input" min="1" max="5" value="2">
+        <div class="setting-info">Jumlah digit untuk kode flex (default: 2)</div>
+      </div>
+      
+      <div class="setting-item">
+        <label class="setting-label">Digit KATEGORI:</label>
+        <input type="number" id="category-digits" class="setting-input" min="1" max="5" value="2">
+        <div class="setting-info">Jumlah digit untuk kode kategori (default: 2)</div>
+      </div>
+      
+      <div class="setting-item">
+        <label class="setting-label">Digit PRODUK:</label>
+        <input type="number" id="product-digits" class="setting-input" min="1" max="5" value="4">
+        <div class="setting-info">Jumlah digit untuk kode produk (default: 4)</div>
+      </div>
+      
+      <div class="setting-item">
+        <label class="setting-label">Digit BERAT:</label>
+        <input type="number" id="weight-digits" class="setting-input" min="1" max="5" value="5">
+        <div class="setting-info">Jumlah digit untuk berat (default: 5)</div>
+      </div>
+      
+      <div class="current-settings" id="total-digits-info">
+        Total digit barcode: 13
+      </div>
+      
+      <!-- Informasi nilai yang tersimpan -->
+      <div class="stored-values-info">
+        <span>Flex: <span id="stored-flex-value">00</span></span>
+        <span>Kategori: <span id="stored-category-value">00</span></span>
+      </div>
+      
+      <div class="settings-buttons">
+        <button class="save-btn function-btn" id="save-settings">SIMPAN</button>
+        <button class="cancel-btn function-btn" id="cancel-settings">BATAL</button>
+      </div>
+      
+      <button class="reset-values-btn function-btn" id="reset-values-btn">RESET NILAI FLEX & KATEGORI</button>
+    </div>
+  </div>
+  
   <div id="notification"></div>
 
   <script>
@@ -289,6 +475,167 @@
     let audioContext = null;
     let isAudioInitialized = false;
     const audioStatus = document.getElementById('audio-status');
+    
+    // Digit configuration with defaults
+    let digitConfig = {
+      flex: 2,
+      category: 2,
+      product: 4,
+      weight: 5
+    };
+    
+    // Global variables untuk nilai flex dan kategori
+    let flexValue = '';
+    let categoryValue = '';
+    let productValue = '';
+    let weightValue = '';
+    let currentInputMode = 'product';
+    let port = null;
+    let writer = null;
+    
+    // Load configuration from localStorage
+    function loadConfig() {
+      const savedConfig = localStorage.getItem('barcodeDigitConfig');
+      if (savedConfig) {
+        digitConfig = JSON.parse(savedConfig);
+        updateTotalDigitsInfo();
+      }
+    }
+    
+    // Load stored values from localStorage
+    function loadStoredValues() {
+      const savedFlex = localStorage.getItem('barcodeFlexValue');
+      const savedCategory = localStorage.getItem('barcodeCategoryValue');
+      
+      if (savedFlex !== null) {
+        flexValue = savedFlex;
+        // Potong jika nilai lebih panjang dari digit yang diizinkan
+        if (flexValue.length > digitConfig.flex) {
+          flexValue = flexValue.substring(0, digitConfig.flex);
+          saveFlexValue();
+        }
+      }
+      
+      if (savedCategory !== null) {
+        categoryValue = savedCategory;
+        // Potong jika nilai lebih panjang dari digit yang diizinkan
+        if (categoryValue.length > digitConfig.category) {
+          categoryValue = categoryValue.substring(0, digitConfig.category);
+          saveCategoryValue();
+        }
+      }
+      
+      // Update tampilan nilai yang tersimpan di settings modal
+      updateStoredValuesInfo();
+    }
+    
+    // Save flex value to localStorage
+    function saveFlexValue() {
+      localStorage.setItem('barcodeFlexValue', flexValue);
+      updateStoredValuesInfo();
+    }
+    
+    // Save category value to localStorage
+    function saveCategoryValue() {
+      localStorage.setItem('barcodeCategoryValue', categoryValue);
+      updateStoredValuesInfo();
+    }
+    
+    // Reset flex and category values
+    function resetFlexCategoryValues() {
+      flexValue = '';
+      categoryValue = '';
+      saveFlexValue();
+      saveCategoryValue();
+      updateDisplay();
+      showNotification('Nilai flex dan kategori telah direset');
+    }
+    
+    // Update stored values info in settings modal
+    function updateStoredValuesInfo() {
+      document.getElementById('stored-flex-value').textContent = flexValue.padStart(digitConfig.flex, '0') || '00';
+      document.getElementById('stored-category-value').textContent = categoryValue.padStart(digitConfig.category, '0') || '00';
+    }
+    
+    // Save configuration to localStorage
+    function saveConfig() {
+      localStorage.setItem('barcodeDigitConfig', JSON.stringify(digitConfig));
+      updateTotalDigitsInfo();
+    }
+    
+    // Update total digits display in settings
+    function updateTotalDigitsInfo() {
+      const total = digitConfig.flex + digitConfig.category + digitConfig.product + digitConfig.weight;
+      document.getElementById('total-digits-info').innerHTML = 
+        `Total digit barcode: ${total}<br>${total === 13 ? '✓ Valid' : '⚠ Harus 13 digit!'}`;
+      
+      // Change color based on validity
+      const infoElement = document.getElementById('total-digits-info');
+      if (total === 13) {
+        infoElement.style.color = '#2ecc71';
+      } else {
+        infoElement.style.color = '#e74c3c';
+      }
+    }
+    
+    // Update settings modal inputs with current config
+    function updateSettingsModal() {
+      document.getElementById('flex-digits').value = digitConfig.flex;
+      document.getElementById('category-digits').value = digitConfig.category;
+      document.getElementById('product-digits').value = digitConfig.product;
+      document.getElementById('weight-digits').value = digitConfig.weight;
+      updateTotalDigitsInfo();
+      updateStoredValuesInfo();
+    }
+    
+    // Show settings modal
+    function showSettings() {
+      updateSettingsModal();
+      document.getElementById('settings-modal').style.display = 'flex';
+    }
+    
+    // Hide settings modal
+    function hideSettings() {
+      document.getElementById('settings-modal').style.display = 'none';
+    }
+    
+    // Save settings from modal
+    function saveSettingsFromModal() {
+      const flexDigits = parseInt(document.getElementById('flex-digits').value) || 2;
+      const categoryDigits = parseInt(document.getElementById('category-digits').value) || 2;
+      const productDigits = parseInt(document.getElementById('product-digits').value) || 4;
+      const weightDigits = parseInt(document.getElementById('weight-digits').value) || 5;
+      
+      const totalDigits = flexDigits + categoryDigits + productDigits + weightDigits;
+      
+      if (totalDigits !== 13) {
+        showNotification(`Total digit harus 13! Saat ini: ${totalDigits} digit`, 4000);
+        return;
+      }
+      
+      // Update configuration
+      digitConfig.flex = flexDigits;
+      digitConfig.category = categoryDigits;
+      digitConfig.product = productDigits;
+      digitConfig.weight = weightDigits;
+      
+      saveConfig();
+      
+      // Potong nilai flex dan kategori jika lebih panjang dari digit baru
+      if (flexValue.length > flexDigits) {
+        flexValue = flexValue.substring(0, flexDigits);
+        saveFlexValue();
+      }
+      
+      if (categoryValue.length > categoryDigits) {
+        categoryValue = categoryValue.substring(0, categoryDigits);
+        saveCategoryValue();
+      }
+      
+      hideSettings();
+      updateDisplay();
+      showNotification('Pengaturan berhasil disimpan!');
+    }
     
     // Initialize audio
     function initAudio() {
@@ -364,15 +711,6 @@
       }
     }
 
-    // Global variables
-    let currentInputMode = 'product'; // Mulai dengan mode PRODUK
-    let flexValue = '';
-    let categoryValue = '';
-    let productValue = '';
-    let weightValue = '';
-    let port = null;
-    let writer = null;
-    
     // Initialize audio on first user interaction
     document.addEventListener('click', function initAudioOnInteraction() {
       if (!isAudioInitialized) {
@@ -404,32 +742,36 @@
         if (num === '00') {
           if (flexValue.length === 0) {
             flexValue = '00';
+            saveFlexValue();
           }
-        } else if (flexValue.length < 2) {
+        } else if (flexValue.length < digitConfig.flex) {
           flexValue += num;
+          saveFlexValue();
         }
       } else if (currentInputMode === 'category') {
         if (num === '00') {
           if (categoryValue.length <= 0) {
             categoryValue = '00';
+            saveCategoryValue();
           }
-        } else if (categoryValue.length < 2) {
+        } else if (categoryValue.length < digitConfig.category) {
           categoryValue += num;
+          saveCategoryValue();
         }
       } else if (currentInputMode === 'product') {
         if (num === '00') {
-          if (productValue.length <= 2) {
+          if (productValue.length <= digitConfig.product - 2) {
             productValue += '00';
           }
-        } else if (productValue.length < 4) {
+        } else if (productValue.length < digitConfig.product) {
           productValue += num;
         }
       } else if (currentInputMode === 'weight') {
         if (num === '00') {
-          if (weightValue.length <= 3) {
+          if (weightValue.length <= digitConfig.weight - 2) {
             weightValue += '00';
           }
-        } else if (weightValue.length < 5) {
+        } else if (weightValue.length < digitConfig.weight) {
           weightValue += num;
         }
       }
@@ -439,8 +781,10 @@
     function backspace() {
       if (currentInputMode === 'flex' && flexValue.length > 0) {
         flexValue = flexValue.slice(0, -1);
+        saveFlexValue();
       } else if (currentInputMode === 'category' && categoryValue.length > 0) {
         categoryValue = categoryValue.slice(0, -1);
+        saveCategoryValue();
       } else if (currentInputMode === 'product' && productValue.length > 0) {
         productValue = productValue.slice(0, -1);
       } else if (currentInputMode === 'weight' && weightValue.length > 0) {
@@ -450,7 +794,7 @@
     }
     
     function clearInput() {
-      // Reset kolom produk dan berat
+      // Reset hanya kolom produk dan berat
       productValue = '';
       weightValue = '';
       
@@ -464,25 +808,27 @@
     
     // Display and formatting functions
     function formatBarcodeData() {
-      const formattedFlex = flexValue.padStart(2, '0');
-      const formattedCategory = categoryValue.padStart(2, '0'); // Diubah dari 3 menjadi 2 digit
-      const formattedProduct = productValue.padStart(4, '0'); // Diubah dari 3 menjadi 4 digit
-      const formattedWeight = weightValue.padStart(5, '0');
+      const formattedFlex = flexValue.padStart(digitConfig.flex, '0');
+      const formattedCategory = categoryValue.padStart(digitConfig.category, '0');
+      const formattedProduct = productValue.padStart(digitConfig.product, '0');
+      const formattedWeight = weightValue.padStart(digitConfig.weight, '0');
       return `${formattedFlex}${formattedCategory}${formattedProduct}${formattedWeight}`;
     }
     
     function updateDisplay() {
-      document.getElementById('current-flex').textContent = flexValue.padStart(2, '0');
-      document.getElementById('current-category').textContent = categoryValue.padStart(2, '0'); // Diubah dari 3 menjadi 2 digit
-      document.getElementById('current-product').textContent = productValue.padStart(4, '0'); // Diubah dari 3 menjadi 4 digit
-      document.getElementById('current-weight').textContent = weightValue.padStart(5, '0');
+      document.getElementById('current-flex').textContent = flexValue.padStart(digitConfig.flex, '0');
+      document.getElementById('current-category').textContent = categoryValue.padStart(digitConfig.category, '0');
+      document.getElementById('current-product').textContent = productValue.padStart(digitConfig.product, '0');
+      document.getElementById('current-weight').textContent = weightValue.padStart(digitConfig.weight, '0');
       document.getElementById('current-barcode').textContent = formatBarcodeData();
     }
     
     function generate() {
       const barcodeData = formatBarcodeData();
-      if (barcodeData.length !== 13) {
-        showNotification('Pastikan semua field terisi dengan digit yang benar');
+      const totalDigits = digitConfig.flex + digitConfig.category + digitConfig.product + digitConfig.weight;
+      
+      if (barcodeData.length !== totalDigits) {
+        showNotification(`Pastikan semua field terisi dengan digit yang benar. Total harus ${totalDigits} digit`);
         return;
       }
       
@@ -495,9 +841,6 @@
       });
       
       showNotification('Barcode berhasil digenerate');
-      
-      // TIDAK ADA RESET OTOMATIS - biarkan user reset manual dengan CLEAR
-      // Data tetap ada untuk bisa di-print
     }
     
     // Printer communication functions - Web Serial API
@@ -545,8 +888,10 @@
         
         // Generate barcode jika belum digenerate
         const barcodeData = formatBarcodeData();
-        if (barcodeData.length !== 13) {
-          showNotification('Pastikan semua field terisi dengan digit yang benar');
+        const totalDigits = digitConfig.flex + digitConfig.category + digitConfig.product + digitConfig.weight;
+        
+        if (barcodeData.length !== totalDigits) {
+          showNotification(`Pastikan semua field terisi dengan digit yang benar. Total harus ${totalDigits} digit`);
           return;
         }
         
@@ -575,11 +920,10 @@
         data += esc + 'a' + '\x01'; // Center alignment
         
         // Baris 1: [Flex value][kategori value][produk value][berat value]
-        // Format: [FF][KK][PPPP][WWWWW]
-        data += '[' + flexValue.padStart(2, '0') + '][' + 
-                       categoryValue.padStart(2, '0') + '][' + // Diubah dari 3 menjadi 2 digit
-                       productValue.padStart(4, '0') + '][' + // Diubah dari 3 menjadi 4 digit
-                       weightValue.padStart(5, '0') + ']' + lf;
+        data += '[' + flexValue.padStart(digitConfig.flex, '0') + '][' + 
+                       categoryValue.padStart(digitConfig.category, '0') + '][' + 
+                       productValue.padStart(digitConfig.product, '0') + '][' + 
+                       weightValue.padStart(digitConfig.weight, '0') + ']' + lf;
         
         // Baris kosong
         data += lf;
@@ -647,10 +991,10 @@
         data += esc + 'a' + '\x01'; // Center alignment
         
         // Baris 1: [Flex value][kategori value][produk value][berat value]
-        data += '[' + flexValue.padStart(2, '0') + '][' + 
-                       categoryValue.padStart(2, '0') + '][' + // Diubah dari 3 menjadi 2 digit
-                       productValue.padStart(4, '0') + '][' + // Diubah dari 3 menjadi 4 digit
-                       weightValue.padStart(5, '0') + ']' + lf;
+        data += '[' + flexValue.padStart(digitConfig.flex, '0') + '][' + 
+                       categoryValue.padStart(digitConfig.category, '0') + '][' + 
+                       productValue.padStart(digitConfig.product, '0') + '][' + 
+                       weightValue.padStart(digitConfig.weight, '0') + ']' + lf;
         
         // Set alignment to center untuk barcode
         data += esc + 'a' + '\x01'; // Center alignment
@@ -710,6 +1054,42 @@
     
     // Set up event listeners for buttons
     function setupButtonListeners() {
+      // SETTINGS button
+      document.getElementById('settings-btn').addEventListener('click', function() {
+        animateButtonPress(this);
+        playTitSound();
+        showSettings();
+      });
+      
+      // Save settings button
+      document.getElementById('save-settings').addEventListener('click', function() {
+        animateButtonPress(this);
+        playTitSound();
+        saveSettingsFromModal();
+      });
+      
+      // Cancel settings button
+      document.getElementById('cancel-settings').addEventListener('click', function() {
+        animateButtonPress(this);
+        playTitSound();
+        hideSettings();
+      });
+      
+      // Reset values button
+      document.getElementById('reset-values-btn').addEventListener('click', function() {
+        animateButtonPress(this);
+        playTitSound();
+        resetFlexCategoryValues();
+        hideSettings();
+      });
+      
+      // Close modal when clicking outside
+      document.getElementById('settings-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          hideSettings();
+        }
+      });
+      
       // FLEX button
       document.getElementById('flex-btn').addEventListener('click', function() {
         animateButtonPress(this);
@@ -834,6 +1214,20 @@
           case 'P':
             printBarcode();
             break;
+          case 's':
+          case 'S':
+            if (event.ctrlKey) {
+              event.preventDefault();
+              showSettings();
+            }
+            break;
+          case 'r':
+          case 'R':
+            if (event.ctrlKey && event.altKey) {
+              event.preventDefault();
+              resetFlexCategoryValues();
+            }
+            break;
           case '1':
           case '2':
           case '3':
@@ -854,6 +1248,12 @@
     
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
+      // Load configuration from localStorage
+      loadConfig();
+      
+      // Load stored values from localStorage
+      loadStoredValues();
+      
       updateDisplay();
       
       // Setup button event listeners
