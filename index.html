@@ -101,7 +101,7 @@
       -webkit-tap-highlight-color: transparent;
       position: relative;
       overflow: hidden;
-      transition: all 0.2s ease;
+      transition: all 0.1s ease;
       outline: none;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
       transform: translateZ(0);
@@ -110,9 +110,9 @@
 
     button:active, button.active {
       background: #2980b9;
-      transform: scale(0.97) translateZ(0);
+      transform: scale(0.95) translateZ(0);
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      transition: transform 0.1s ease;
+      transition: transform 0.05s ease;
     }
 
     .function-btn {
@@ -740,7 +740,7 @@
       button.classList.add('active');
       setTimeout(() => {
         button.classList.remove('active');
-      }, 200);
+      }, 150);
     }
     
     // Input handling functions
