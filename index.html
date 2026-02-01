@@ -148,6 +148,10 @@
       background-color: #c0392b;
     }
 
+    .status-connecting {
+      background-color: #f39c12;
+    }
+
     #notification {
       position: fixed;
       top: 20px;
@@ -343,6 +347,15 @@
     .stored-values-info span {
       flex: 1;
     }
+    
+    /* Disconnect button */
+    .disconnect-btn {
+      background: #e74c3c !important;
+    }
+    
+    .disconnect-btn:active {
+      background: #c0392b !important;
+    }
   </style>
 </head>
 <body>
@@ -394,7 +407,7 @@
     <div class="function-row">
       <button class="function-btn">CLEAR</button>
       <button class="function-btn">ENTER</button>
-      <button class="function-btn">CONNECT</button>
+      <button class="function-btn" id="connect-btn">CONNECT</button>
     </div>
     
     <div class="buttons">
@@ -492,6 +505,9 @@
     let currentInputMode = 'product';
     let port = null;
     let writer = null;
+    
+    // Variabel untuk menyimpan port yang dipilih
+    let savedPortInfo = null;
     
     // Load configuration from localStorage
     function loadConfig() {
@@ -852,10 +868,18 @@
         }
 
         showNotification("Memilih printer...");
+        updateConnectionStatus('connecting');
         
         // Request serial port
         port = await navigator.serial.requestPort();
         showNotification("Membuka koneksi...");
+        
+        // Save port info for reconnection
+        savedPortInfo = {
+          vendorId: port.getInfo().usbVendorId,
+          productId: port.getInfo().usbProductId
+        };
+        localStorage.setItem('printerPortInfo', JSON.stringify(savedPortInfo));
         
         // Open the port with baud rate 9600 (standard for many thermal printers)
         await port.open({ baudRate: 9600 });
@@ -863,8 +887,15 @@
         // Get the writer
         writer = port.writable.getWriter();
         
+        // Save connection state
+        localStorage.setItem('printerConnected', 'true');
+        
         updateConnectionStatus(true);
         showNotification('Printer Connected!');
+        
+        // Update connect button text
+        updateConnectButton(true);
+        
         return true;
         
       } catch (error) {
@@ -875,7 +906,117 @@
           showNotification("Gagal terhubung ke printer: " + error.message);
         }
         updateConnectionStatus(false);
+        localStorage.setItem('printerConnected', 'false');
+        updateConnectButton(false);
         return false;
+      }
+    }
+    
+    // Function to disconnect printer
+    async function disconnectPrinter() {
+      try {
+        if (writer) {
+          await writer.close();
+          writer = null;
+        }
+        
+        if (port) {
+          await port.close();
+          port = null;
+        }
+        
+        // Clear saved connection state
+        localStorage.setItem('printerConnected', 'false');
+        
+        updateConnectionStatus(false);
+        updateConnectButton(false);
+        showNotification('Printer disconnected');
+      } catch (error) {
+        console.error("Disconnection error:", error);
+        showNotification("Error disconnecting printer: " + error.message);
+      }
+    }
+    
+    // Function to reconnect to printer
+    async function reconnectToPrinter() {
+      try {
+        if (!("serial" in navigator)) {
+          return false;
+        }
+
+        // Check if we have saved port info
+        const savedPortInfoStr = localStorage.getItem('printerPortInfo');
+        if (!savedPortInfoStr) {
+          return false;
+        }
+
+        updateConnectionStatus('connecting');
+        
+        // Get previously authorized ports
+        const ports = await navigator.serial.getPorts();
+        
+        if (ports.length === 0) {
+          updateConnectionStatus(false);
+          updateConnectButton(false);
+          return false;
+        }
+
+        // Try to find our saved port
+        const savedPortInfo = JSON.parse(savedPortInfoStr);
+        let targetPort = ports[0]; // Default to first port
+        
+        // Try to find the exact port that was previously connected
+        for (const p of ports) {
+          const info = p.getInfo();
+          if (info.usbVendorId === savedPortInfo.vendorId && 
+              info.usbProductId === savedPortInfo.productId) {
+            targetPort = p;
+            break;
+          }
+        }
+
+        // Open the port
+        port = targetPort;
+        await port.open({ baudRate: 9600 });
+        
+        // Get the writer
+        writer = port.writable.getWriter();
+        
+        updateConnectionStatus(true);
+        updateConnectButton(true);
+        showNotification('Printer reconnected successfully!', 2000);
+        
+        return true;
+      } catch (error) {
+        console.error("Reconnection error:", error);
+        updateConnectionStatus(false);
+        updateConnectButton(false);
+        return false;
+      }
+    }
+    
+    // Update connect button based on connection state
+    function updateConnectButton(connected) {
+      const connectBtn = document.getElementById('connect-btn');
+      if (connected) {
+        connectBtn.textContent = 'DISCONNECT';
+        connectBtn.classList.remove('function-btn');
+        connectBtn.classList.add('disconnect-btn');
+      } else {
+        connectBtn.textContent = 'CONNECT';
+        connectBtn.classList.remove('disconnect-btn');
+        connectBtn.classList.add('function-btn');
+      }
+    }
+    
+    // Handle connect/disconnect button click
+    async function handleConnectClick() {
+      const isConnected = localStorage.getItem('printerConnected') === 'true';
+      
+      if (isConnected && port) {
+        await disconnectPrinter();
+      } else {
+        await connectToPrinter();
       }
     }
     
@@ -901,9 +1042,15 @@
           generate(); // Generate barcode terlebih dahulu
         }
 
-        if (!writer) {
-          showNotification('Printer belum terhubung. Klik tombol CONNECT dulu.');
-          return;
+        // Check if printer is connected
+        const isConnected = localStorage.getItem('printerConnected') === 'true';
+        if (!isConnected || !writer) {
+          // Try to reconnect automatically
+          const reconnected = await reconnectToPrinter();
+          if (!reconnected) {
+            showNotification('Printer belum terhubung. Klik tombol CONNECT dulu.');
+            return;
+          }
         }
 
         showNotification("Mengirim data ke printer...");
@@ -962,6 +1109,13 @@
       } catch (error) {
         console.error("Print error:", error);
         showNotification("Gagal mengirim ke printer: " + error.message);
+        
+        // If error is due to disconnected printer, update status
+        if (error.message.includes("closed") || error.message.includes("disconnected")) {
+          updateConnectionStatus(false);
+          localStorage.setItem('printerConnected', 'false');
+          updateConnectButton(false);
+        }
         
         // Coba format alternatif jika gagal
         if (error.message.includes("invalid") || error.message.includes("character")) {
@@ -1031,14 +1185,17 @@
     }
     
     // UI feedback functions
-    function updateConnectionStatus(connected) {
-      const status = document.getElementById('status');
-      if (connected) {
-        status.textContent = 'Printer: Terkoneksi';
-        status.className = 'status-connected';
+    function updateConnectionStatus(status) {
+      const statusElement = document.getElementById('status');
+      if (status === true) {
+        statusElement.textContent = 'Printer: Terkoneksi';
+        statusElement.className = 'status-connected';
+      } else if (status === 'connecting') {
+        statusElement.textContent = 'Printer: Menyambungkan...';
+        statusElement.className = 'status-connecting';
       } else {
-        status.textContent = 'Printer: Tidak Terkoneksi';
-        status.className = 'status-disconnected';
+        statusElement.textContent = 'Printer: Tidak Terkoneksi';
+        statusElement.className = 'status-disconnected';
       }
     }
     
@@ -1139,11 +1296,11 @@
         generate();
       });
       
-      // CONNECT button
-      document.querySelectorAll('.function-row')[1].children[2].addEventListener('click', function() {
+      // CONNECT/DISCONNECT button
+      document.getElementById('connect-btn').addEventListener('click', function() {
         animateButtonPress(this);
         playTitSound();
-        connectToPrinter();
+        handleConnectClick();
       });
       
       // Number buttons (0-9, 00)
@@ -1208,7 +1365,7 @@
           case 'c':
           case 'C':
             if (event.ctrlKey) break;
-            connectToPrinter();
+            handleConnectClick();
             break;
           case 'p':
           case 'P':
@@ -1246,6 +1403,20 @@
       });
     }
     
+    // Initialize printer connection on page load
+    async function initializePrinterConnection() {
+      // Check if printer was previously connected
+      const wasConnected = localStorage.getItem('printerConnected') === 'true';
+      
+      if (wasConnected) {
+        // Try to reconnect automatically
+        await reconnectToPrinter();
+      } else {
+        updateConnectionStatus(false);
+        updateConnectButton(false);
+      }
+    }
+    
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
       // Load configuration from localStorage
@@ -1262,9 +1433,13 @@
       // Setup keyboard listeners
       setupKeyboardListeners();
       
+      // Initialize printer connection
+      initializePrinterConnection();
+      
       // Check Web Serial API support
       if (!("serial" in navigator)) {
         document.getElementById('status').textContent = 'Browser tidak mendukung Web Serial API';
+        updateConnectButton(false);
       }
     });
   </script>
